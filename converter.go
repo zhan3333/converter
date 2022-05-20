@@ -2,36 +2,61 @@ package converter
 
 import (
 	"fmt"
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/fatih/color"
 	"github.com/sirupsen/logrus"
 	ffmpeg "github.com/u2takey/ffmpeg-go"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
+var ffmpegLog io.Writer
+
+func init() {
+	var err error
+	ffmpegLog, err = os.OpenFile("logs/ffmpeg.txt", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
+	if err != nil {
+		panic("init ffmpeg log file failed: " + err.Error())
+	}
+}
+
 func Run() {
 	files, err := readDirFiles(".")
 	if err != nil {
-		logrus.Errorf("read dir files faield: %s", err.Error())
+		color.Red("read dir files failed: %s", err.Error())
 		return
 	}
 	files = filterVideoFiles(files)
 	if len(files) == 0 {
-		logrus.Warn("当前目录未找到待转格式的视频")
+		color.Yellow("当前目录未找到待转格式的视频")
 		return
 	}
-	logrus.Infof("找到了这些待转格式的视频: %v", files)
-	logrus.Info("转格式开始")
-	for _, file := range files {
+
+	var files2 []string
+	_ = survey.AskOne(&survey.MultiSelect{
+		Message: "选择需要转码为 mp4 的视频",
+		Options: files,
+	}, &files2)
+
+	if len(files2) == 0 {
+		color.Yellow("未选择任何视频")
+		return
+	}
+
+	color.White("选择了: %v", files2)
+	color.White("转格式开始")
+	for _, file := range files2 {
 		outFile := getNoExistMP4Filename(file)
 		if err = convertFile(file, outFile); err != nil {
 			logrus.Errorf("convert file=%s: %s", file, err.Error())
 			return
 		}
-		logrus.Infof("转换一个文件完成: %s -> %s", file, outFile)
+		color.White("- 转换完成: %s -> %s", file, outFile)
 	}
-	logrus.Info("所有文件转换结束")
+	color.Green("所有 %d 个视频转换完成", len(files2))
 }
 
 func isFileExists(file string) (bool, error) {
@@ -53,7 +78,7 @@ func convertFile(inFile string, outFile string) error {
 	err := ffmpeg.Input(inFile).
 		Output(outFile).
 		OverWriteOutput().
-		ErrorToStdOut().
+		WithOutput(ffmpegLog, ffmpegLog).
 		Run()
 	return err
 }

@@ -2,6 +2,7 @@ package converter
 
 import (
 	"fmt"
+	"github.com/fatih/color"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -32,7 +33,7 @@ func Windows() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("版本: " + v)
+	color.White("版本: " + v)
 	return nil
 }
 
@@ -45,7 +46,7 @@ func Mac() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("版本: " + v)
+	color.White("版本: " + v)
 	return nil
 }
 

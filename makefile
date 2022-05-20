@@ -1,6 +1,5 @@
 .PHONY: build
-build:
-	rm -f build/converter.exe build/logs/log.txt build/*.mp4
+build: clear
 	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o build/converter.exe cmd/main.go
 
 release: build
@@ -9,3 +8,7 @@ release: build
 
 run:
 	go run cmd/main.go
+
+clear:
+	rm -f build/converter.exe build/logs/*.txt build/*.mp4
+	rm -f *.mp4 logs/*.txt

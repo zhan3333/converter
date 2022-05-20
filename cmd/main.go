@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/fatih/color"
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
@@ -12,15 +14,14 @@ import (
 
 func main() {
 	// 昨夜有繁星满天，今早有朝霞渐起。 你看见也好，看不见也没关系， 我找到你，它们才有意义。
-	logrus.Info("程序开始运行")
+	color.Cyan("程序开始运行")
 	printCard()
 	defer func() {
-		logrus.Info("程序运行结束")
-		fmt.Println("请按回车键退出程序，或直接关闭窗口")
+		color.Green("程序运行结束，请按回车键退出程序，或直接关闭窗口")
 		fmt.Scanf("a")
 	}()
 	var err error
-	fmt.Println("run in " + runtime.GOOS + " " + runtime.GOARCH)
+	color.White("run in " + runtime.GOOS + " " + runtime.GOARCH)
 	if runtime.GOOS == "windows" {
 		err = converter.Windows()
 	}
@@ -31,16 +32,29 @@ func main() {
 		err = fmt.Errorf("暂时不支持 %s %s", runtime.GOOS, runtime.GOARCH)
 	}
 	if err != nil {
-		fmt.Println("发生错误: " + err.Error())
+		color.Red("发生错误: " + err.Error())
 		return
 	}
 
-	converter.Run()
+	var action string
+
+	_ = survey.AskOne(&survey.Select{
+		Message: "选择功能",
+		Options: []string{"视频转 mp4", "下载网络视频"},
+		Default: "视频转 mp4",
+	}, &action)
+
+	switch action {
+	case "视频转 mp4":
+		converter.Run()
+	case "下载网络视频":
+		converter.ActionDownload()
+	}
 }
 
 func printCard() {
 	fmt.Println()
-	fmt.Println("to: 老婆")
+	fmt.Println("to: chen")
 	fmt.Println()
 	fmt.Println("    昨夜有繁星满天，")
 	fmt.Println("    今早有朝霞渐起。")
