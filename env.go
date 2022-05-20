@@ -11,11 +11,15 @@ import (
 )
 
 var FfmpegWin = "dependencies/ffmpeg-win"
+var FfmpegMac = "dependencies/ffmpeg-mac"
 
 func init() {
 	// 编译前在 build 目录
 	if e, _ := isDirExists(FfmpegWin); !e {
 		FfmpegWin = "build/" + FfmpegWin
+	}
+	if e, _ := isDirExists(FfmpegMac); !e {
+		FfmpegMac = "build/" + FfmpegMac
 	}
 }
 
@@ -33,20 +37,27 @@ func Windows() error {
 	if err != nil {
 		return err
 	}
-	color.White("版本: " + v)
+	color.White(v)
 	return nil
 }
 
 var rg = regexp.MustCompile("ffmpeg version (.*) Copyright")
 
 // Mac mac 下的可执行文件
-// 现在不做处理，因为本地安装了 ffmpeg
 func Mac() error {
+	d, _ := os.Getwd()
+	p := fmt.Sprintf("%s:%s", os.Getenv("PATH"), filepath.Join(d, FfmpegMac))
+	err := os.Setenv("PATH", p)
+
+	if err != nil {
+		return fmt.Errorf("set windows PATH: %w", err)
+	}
+
 	v, err := getFfmpegVersion()
 	if err != nil {
 		return err
 	}
-	color.White("版本: " + v)
+	color.White(v)
 	return nil
 }
 

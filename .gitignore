@@ -3,4 +3,6 @@ vendor/
 *.mp4
 build/*.mp4
 build/converter.exe
-converter-win.zip
+build/converter
+build/converter-m1
+converter.zip

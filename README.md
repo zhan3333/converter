@@ -62,6 +62,8 @@ build/dependencies/ffmpeg-win 是 windows 下的 ffmpeg 可执行程序，版本
 
 https://github.com/zhan3333/converter/releases
 
+下载 converter.zip 文件，解压后 windows 平台双击运行 converter.exe, mac 平台双击或命令行运行 converter。
+
 ## 开发
 
 ### 运行
@@ -84,7 +86,7 @@ make build
 make release
 ```
 
-执行完毕后会生成 converter-win.zip 文件
+执行完毕后会生成 converter.zip 文件
 
 ## 其他
 
