@@ -10,6 +10,10 @@ build/dependencies/ffmpeg-win 是 windows 下的 ffmpeg 可执行程序，版本
 
 开发基于 https://github.com/u2takey/ffmpeg-go 库。
 
+## 下载
+
+https://github.com/zhan3333/converter/releases
+
 ## 运行
 
 ```shell
