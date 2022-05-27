@@ -1,9 +1,9 @@
 .PHONY: build
-build: clear
-	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o build/converter.exe cmd/main.go
-	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o build/converter cmd/main.go
+build:
+	#CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -o build/converter.exe cmd/gui/main.go
+	go build -o build/converter cmd/gui/main.go
 
-release: build
+release:
 	rm -f converter.zip
 	zip -p -r converter.zip build/
 
