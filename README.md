@@ -18,8 +18,8 @@ build/dependencies/ffmpeg-win 是 windows 下的 ffmpeg 可执行程序，版本
 - 下载文件名信息、进度显示
 - 视频格式转换支持输入输出任意视频格式
 - 搞定 Mac M1 编译 Windows 执行文件
-- 隐藏启动 Gui 后的命令行程序
-- 可能会更换 GUI 实现，例如换为 electron、rust 等
+- 隐藏启动 GUI 后的命令行程序
+- 可能会更换 GUI 实现，例如换为 Electron、Rust 等
 
 ## 功能
 
@@ -75,7 +75,7 @@ build/dependencies/ffmpeg-win 是 windows 下的 ffmpeg 可执行程序，版本
 
 https://github.com/zhan3333/converter/releases
 
-下载最新的 converter.zip 文件，解压后 windows 平台双击运行 converter.exe, mac 平台双击或命令行运行 converter。
+下载最新的 converter.zip 文件，解压后 Windows 平台双击运行 converter.exe, Mac 平台双击或命令行运行 converter。
 
 ## 开发
 
@@ -95,7 +95,7 @@ make build
 
 ### 发包
 
-由于开发机是 M1 Mac, fyne 跨平台编译 windows 始终成功不了，需要使用 windows 主机编译 exe 文件，然后在 release 进行打包。 
+由于开发机是 M1 Mac, fyne 跨平台编译 Windows 始终成功不了，需要使用 Windows 主机编译 exe 文件，然后在 release 进行打包。 
 
 ```shell
 make release
