@@ -2,12 +2,8 @@ package converter
 
 import (
 	"fmt"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/fatih/color"
-	"github.com/sirupsen/logrus"
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,42 +25,6 @@ func ConvertVideo(file string, toDir string, write io.Writer) (string, error) {
 		return "", fmt.Errorf("convert file=%s: %w", file, err)
 	}
 	return outFile, nil
-}
-
-func Run() {
-	files, err := readDirFiles(".")
-	if err != nil {
-		color.Red("read dir files failed: %s", err.Error())
-		return
-	}
-	files = filterVideoFiles(files)
-	if len(files) == 0 {
-		color.Yellow("当前目录未找到待转格式的视频")
-		return
-	}
-
-	var files2 []string
-	_ = survey.AskOne(&survey.MultiSelect{
-		Message: "选择需要转码为 mp4 的视频",
-		Options: files,
-	}, &files2)
-
-	if len(files2) == 0 {
-		color.Yellow("未选择任何视频")
-		return
-	}
-
-	color.White("选择了: %v", files2)
-	color.White("转格式开始")
-	for _, file := range files2 {
-		outFile := getNoExistMP4Filename(file)
-		if err = convertFile(file, outFile); err != nil {
-			logrus.Errorf("convert file=%s: %s", file, err.Error())
-			return
-		}
-		color.White("- 转换完成: %s -> %s", file, outFile)
-	}
-	color.Green("所有 %d 个视频转换完成", len(files2))
 }
 
 func isFileExists(file string) (bool, error) {
@@ -109,46 +69,4 @@ func getMP4FileName(file string, index int) string {
 		return strings.TrimSuffix(file, filepath.Ext(file)) + ".mp4"
 	}
 	return fmt.Sprintf("%s-%d.mp4", strings.TrimSuffix(file, filepath.Ext(file)), index)
-}
-
-// 读取目录下所有文件
-func readDirFiles(dir string) ([]string, error) {
-	files, err := ioutil.ReadDir(dir)
-	if err != nil {
-		return nil, fmt.Errorf("read dir %s: %d", dir, err)
-	}
-	var fs []string
-	for _, v := range files {
-		fs = append(fs, v.Name())
-	}
-	if len(fs) == 0 {
-		return []string{}, nil
-	}
-	return fs, nil
-}
-
-// 过滤出所有视频文件
-func filterVideoFiles(files []string) []string {
-	var res []string
-	for _, f := range files {
-		ext := filepath.Ext(f)
-		if SupportVideoExtensions[ext] {
-			res = append(res, f)
-		}
-	}
-	if len(res) == 0 {
-		return []string{}
-	}
-	return res
-}
-
-func delOutFiles(files []string) error {
-	for _, file := range files {
-		if err := os.Remove(file); err != nil {
-			if !os.IsNotExist(err) {
-				return fmt.Errorf("del %s: %w", file, err)
-			}
-		}
-	}
-	return nil
 }
