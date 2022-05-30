@@ -16,7 +16,7 @@ var FfmpegMac = "dependencies/ffmpeg-mac"
 var Font = "dependencies/fonts/微软雅黑.ttf"
 
 func init() {
-	// 编译前在 build 目录
+	// 区分开发环境与生产环境，依赖文件均在 build/ 目录下
 	if e, _ := isDirExists(FfmpegWin); !e {
 		FfmpegWin = "build/" + FfmpegWin
 	}

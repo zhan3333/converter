@@ -28,11 +28,12 @@ func init() {
 }
 
 func main() {
+	converter.PrintCard()
 	if err := converter.Setup(); err != nil {
 		fmt.Println("程序环境准备失败: %s" + err.Error())
 	}
 	a := app.NewWithID("convert")
-	w := a.NewWindow("Hello")
+	w := a.NewWindow("Converter")
 	tabs := container.NewAppTabs(
 		container.NewTabItem("下载网络视频", downloadVideoBox(w)),
 		container.NewTabItem("视频转 mp4 格式", convertVideoBox(w)),
@@ -53,7 +54,7 @@ func main() {
 func downloadVideoBox(w fyne.Window) (box *fyne.Container) {
 	box = container.NewVBox()
 	input := widget.NewEntry()
-	input.SetPlaceHolder("Enter video url")
+	input.SetPlaceHolder("输入视频链接，例如 https://www.bilibili.com/video/BV1B34y1j73J")
 	input.Text = "https://www.bilibili.com/video/BV1B34y1j73J"
 	input.MultiLine = true
 	input.Validator = func(s string) error {
