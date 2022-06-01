@@ -71,7 +71,7 @@ func OpenSystemDir(dir string) {
 	var err error
 	switch GetOS() {
 	case "windows":
-		err = exec.Command("start", dir).Run()
+		err = exec.Command("cmd", "/c", "explorer", dir).Run()
 	case "darwin":
 		err = exec.Command("open", dir).Run()
 	case "linux":
