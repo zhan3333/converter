@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -36,7 +37,7 @@ func main() {
 	w := a.NewWindow("Converter")
 	tabs := container.NewAppTabs(
 		container.NewTabItem("下载网络视频", downloadVideoBox(w)),
-		container.NewTabItem("视频转 mp4 格式", convertVideoBox(w)),
+		container.NewTabItem("视频转换格式", convertVideoBox(w)),
 	)
 
 	w.SetContent(tabs)
@@ -116,33 +117,74 @@ func convertVideoBox(w fyne.Window) (box *fyne.Container) {
 	var (
 		selectFile     string
 		selectFileName = binding.NewString()
+		outputExt      = binding.NewString()
 		outputFile     string
 		outputFileName = binding.NewString()
-		statusText     = NewStatusText("选择视频文件进行格式转换")
+		statusText     = NewStatusText("未开始")
 	)
 	downloadDir, err := converter.GetCurrentDir()
 	if err != nil {
 		dialog.ShowError(err, w)
 		return
 	}
-	openDirButton := widget.NewButton("打开结果目录", func() {
-		converter.OpenSystemDir(downloadDir)
-	})
-	selectFileButton := widget.NewButton("选择待转换格式的视频文件", func() {
-		fd := dialog.NewFileOpen(func(reader fyne.URIReadCloser, err error) {
+
+	box.Add(container.NewGridWithColumns(2,
+		// 选择文件按钮
+		widget.NewButton("选择文件", func() {
+			fd := dialog.NewFileOpen(func(reader fyne.URIReadCloser, err error) {
+				if err != nil {
+					dialog.ShowError(err, w)
+					return
+				}
+				if reader == nil {
+					log.Println("Cancelled")
+					return
+				}
+				selectFile = reader.URI().Path()
+				_ = selectFileName.Set(filepath.Base(selectFile))
+			}, w)
+			fd.SetFilter(storage.NewExtensionFileFilter(converter.GetSupportVideoExtensions()))
+			d, err := CurrentDir()
 			if err != nil {
 				dialog.ShowError(err, w)
 				return
 			}
-			if reader == nil {
-				log.Println("Cancelled")
+			fd.SetLocation(d)
+			fd.Show()
+		}),
+		// 选择输出格式
+		func() *widget.Select {
+			s := widget.NewSelect(converter.GetSupportVideoExtensions(), func(s string) {
+				_ = outputExt.Set(s)
+			})
+			s.PlaceHolder = "选择输出格式"
+			return s
+		}(),
+	))
+
+	box.Add(container.NewGridWithColumns(2,
+		widget.NewLabel("输入文件: "),
+		widget.NewLabelWithData(selectFileName)),
+	)
+	box.Add(container.NewGridWithColumns(2,
+		widget.NewLabel("输出格式: "),
+		widget.NewLabelWithData(outputExt)),
+	)
+	box.Add(container.NewGridWithColumns(2,
+		// 开始转换按钮
+		widget.NewButton("开始转换", func() {
+			if selectFile == "" {
+				dialog.ShowError(errors.New("请选择输入文件"), w)
 				return
 			}
-			selectFile = reader.URI().Path()
-			_ = selectFileName.Set(filepath.Base(selectFile))
+			if ext, _ := outputExt.Get(); ext == "" {
+				dialog.ShowError(errors.New("请选择输出格式"), w)
+				return
+			}
 			processWriter := &strings.Builder{}
 			statusText.SetInProcess("转换中")
-			outputFile, err = converter.ConvertVideo(reader.URI().Path(), downloadDir, processWriter)
+			ext, _ := outputExt.Get()
+			outputFile, err = converter.ConvertVideo(selectFile, ext, downloadDir, processWriter)
 			if err != nil {
 				statusText.Set("转换失败: " + err.Error())
 				dialog.ShowError(err, w)
@@ -155,27 +197,20 @@ func convertVideoBox(w fyne.Window) (box *fyne.Container) {
 					}
 				}, w)
 			}
-		}, w)
-		fd.SetFilter(storage.NewExtensionFileFilter(converter.GetSupportVideoExtensions()))
-		d, err := CurrentDir()
-		if err != nil {
-			dialog.ShowError(err, w)
-			return
-		}
-		fd.SetLocation(d)
-		fd.Show()
-	})
-
-	box.Add(container.NewGridWithColumns(2,
-		widget.NewLabel("输入文件: "),
-		widget.NewLabelWithData(selectFileName)),
-	)
+		}),
+		// 打开文件夹
+		widget.NewButton("打开结果目录", func() {
+			converter.OpenSystemDir(downloadDir)
+		}),
+	))
 	box.Add(container.NewGridWithColumns(2,
 		widget.NewLabel("输出文件: "),
 		widget.NewLabelWithData(outputFileName)),
 	)
-	box.Add(statusText.Widget)
-	box.Add(container.NewGridWithColumns(2, selectFileButton, openDirButton))
+	box.Add(container.NewGridWrap(fyne.NewSize(50, 20),
+		widget.NewLabel("状态："),
+		statusText.Widget,
+	))
 
 	return
 }

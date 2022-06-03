@@ -57,6 +57,7 @@ var SupportVideoExtensions = map[string]bool{
 	".dat":  true,
 	".ogg":  true,
 	".ts":   true,
+	".mp4":  true,
 }
 
 func GetSupportVideoExtensions() []string {

@@ -4,7 +4,7 @@ build:
 	go build -o build/converter cmd/gui/main.go
 
 release:
-	rm -f converter.zip
+	rm -f converter.zip build/logs/*.txt build/*.mp4
 	zip -p -r converter.zip build/
 
 run:

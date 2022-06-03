@@ -19,8 +19,8 @@ func init() {
 	}
 }
 
-func ConvertVideo(file string, toDir string, write io.Writer) (string, error) {
-	outFile := getNoExistMP4Filename(filepath.Join(toDir, filepath.Base(file)))
+func ConvertVideo(file string, outputExt string, toDir string, write io.Writer) (string, error) {
+	outFile := getNoExistFilename(filepath.Join(toDir, filepath.Base(file)), outputExt)
 	if err := convertFile(file, outFile); err != nil {
 		return "", fmt.Errorf("convert file=%s: %w", file, err)
 	}
@@ -52,10 +52,10 @@ func convertFile(inFile string, outFile string) error {
 }
 
 // 获取一个不存在的 mp4 文件名
-func getNoExistMP4Filename(file string) string {
+func getNoExistFilename(file string, outputExt string) string {
 	var index int
 	for {
-		newFile := getMP4FileName(file, index)
+		newFile := getMP4FileName(file, index, outputExt)
 		if exist, _ := isFileExists(newFile); exist {
 			index++
 		} else {
@@ -64,9 +64,9 @@ func getNoExistMP4Filename(file string) string {
 	}
 }
 
-func getMP4FileName(file string, index int) string {
+func getMP4FileName(file string, index int, outputExt string) string {
 	if index == 0 {
-		return strings.TrimSuffix(file, filepath.Ext(file)) + ".mp4"
+		return strings.TrimSuffix(file, filepath.Ext(file)) + outputExt
 	}
-	return fmt.Sprintf("%s-%d.mp4", strings.TrimSuffix(file, filepath.Ext(file)), index)
+	return fmt.Sprintf("%s-%d%s", strings.TrimSuffix(file, filepath.Ext(file)), index, outputExt)
 }

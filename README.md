@@ -2,11 +2,9 @@
 
 程序可编译在 Windows、Mac 平台运行。
 
-基于 ffmpeg 实现的将当前目录下所有非 mp4 视频文件转码为 mp4 文件。
+基于 ffmpeg 实现视频格式转换。
 
 基于 lux 项目实现的网络视频下载功能。
-
-in.avi 为测试视频，运行程序后将会生成 in.mp4 文件。生成文件不会覆盖，注意及时移走不需要转码的非 mp4 文件。
 
 build/dependencies/ffmpeg-win 是 windows 下的 ffmpeg 可执行程序，版本为 5.0.1。
 
@@ -14,9 +12,9 @@ build/dependencies/ffmpeg-win 是 windows 下的 ffmpeg 可执行程序，版本
 
 ## 路线
 
-- 兼容性测试，需要支持 Mac + Win7 及以上操作系统
+- [x] 兼容性测试，需要支持 Mac + Win7 及以上操作系统 (Windows 需要 OpenGL 支持才能正常运行)
 - 下载文件名信息、进度显示
-- 视频格式转换支持输入输出任意视频格式
+- [x] 视频格式转换支持输入输出任意视频格式
 - 搞定 Mac M1 编译 Windows 执行文件
 - 隐藏启动 GUI 后的命令行程序
 - 可能会更换 GUI 实现，例如换为 Electron、Rust 等
@@ -67,9 +65,9 @@ build/dependencies/ffmpeg-win 是 windows 下的 ffmpeg 可执行程序，版本
 | 喜马拉雅   | <https://www.ximalaya.com>   |           |           | ✓        |             |                   | [![ximalaya](https://github.com/iawia002/lux/actions/workflows/stream_ximalaya.yml/badge.svg)](https://github.com/iawia002/lux/actions/workflows/stream_ximalaya.yml)       |
 | 快手       | <https://www.kuaishou.com>   | ✓         |           |          |             |                   | [![kuaishou](https://github.com/iawia002/lux/actions/workflows/stream_kuaishou.yml/badge.svg)](https://github.com/iawia002/lux/actions/workflows/stream_kuaishou.yml)       |
 
-### 视频转为 mp4 格式
+### 视频转换格式
 
-![视频转为 mp4 格式](./data/video-download.png)
+![视频转为 mp4 格式](./data/video-convert.png)
 
 ## 下载
 
@@ -95,7 +93,7 @@ make build
 
 ### 发包
 
-由于开发机是 M1 Mac, fyne 跨平台编译 Windows 始终成功不了，需要使用 Windows 主机编译 exe 文件，然后在 release 进行打包。 
+由于开发机是 M1 Mac, fyne 跨平台编译 Windows 始终成功不了，需要使用 Windows 主机编译 exe 文件，然后在 release 进行打包。
 
 ```shell
 make release

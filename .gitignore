@@ -1,6 +1,7 @@
 .idea/
 vendor/
 *.mp4
+*.mpg
 build/*.mp4
 build/converter.exe
 build/converter
