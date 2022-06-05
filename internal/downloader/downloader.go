@@ -47,8 +47,11 @@ type Options struct {
 
 // Downloader is the default downloader.
 type Downloader struct {
-	bar    *pb.ProgressBar
+	Bar    *pb.ProgressBar
 	option Options
+	Site   string
+	Title  string
+	Type   string
 }
 
 func progressBar(size int64) *pb.ProgressBar {
@@ -109,7 +112,7 @@ func (downloader *Downloader) writeFile(url string, file *os.File, headers map[s
 	}
 	defer res.Body.Close() // nolint
 
-	barWriter := downloader.bar.NewProxyWriter(file)
+	barWriter := downloader.Bar.NewProxyWriter(file)
 	// Note that io.Copy reads 32kb(maximum) from input and writes them to output, then repeats.
 	// So don't worry about memory.
 	written, copyErr := io.Copy(barWriter, res.Body)
@@ -131,7 +134,7 @@ func (downloader *Downloader) save(part *extractors.Part, refer, fileName string
 	// Skip segment file
 	// TODO: Live video URLs will not return the size
 	if exists && fileSize == part.Size {
-		downloader.bar.Add64(fileSize)
+		downloader.Bar.Add64(fileSize)
 		return nil
 	}
 
@@ -151,7 +154,7 @@ func (downloader *Downloader) save(part *extractors.Part, refer, fileName string
 		// range start from 0, 0-1023 means the first 1024 bytes of the file
 		headers["Range"] = fmt.Sprintf("bytes=%d-", tempFileSize)
 		file, fileError = os.OpenFile(tempFilePath, os.O_APPEND|os.O_WRONLY, 0644)
-		downloader.bar.Add64(tempFileSize)
+		downloader.Bar.Add64(tempFileSize)
 	} else {
 		file, fileError = os.Create(tempFilePath)
 	}
@@ -230,7 +233,7 @@ func (downloader *Downloader) multiThreadSave(dataPart *extractors.Part, refer, 
 	// Skip segment file
 	// TODO: Live video URLs will not return the size
 	if exists && fileSize == dataPart.Size {
-		downloader.bar.Add64(fileSize)
+		downloader.Bar.Add64(fileSize)
 		return nil
 	}
 	tmpFilePath := filePath + ".download"
@@ -240,7 +243,7 @@ func (downloader *Downloader) multiThreadSave(dataPart *extractors.Part, refer, 
 	}
 	if tmpExists {
 		if tmpFileSize == dataPart.Size {
-			downloader.bar.Add64(dataPart.Size)
+			downloader.Bar.Add64(dataPart.Size)
 			return os.Rename(tmpFilePath, filePath)
 		}
 
@@ -325,7 +328,7 @@ func (downloader *Downloader) multiThreadSave(dataPart *extractors.Part, refer, 
 		}
 	}
 	if savedSize > 0 {
-		downloader.bar.Add64(savedSize)
+		downloader.Bar.Add64(savedSize)
 		if savedSize == dataPart.Size {
 			return mergeMultiPart(filePath, parts)
 		}
@@ -544,7 +547,7 @@ func (downloader *Downloader) aria2(title string, stream *extractors.Stream) err
 }
 
 // Download download urls
-func (downloader *Downloader) Download(data *extractors.Data) error {
+func (downloader *Downloader) Download(data *extractors.Data, process *Process) error {
 	if len(data.Streams) == 0 {
 		return errors.Errorf("no streams in title %s", data.Title)
 	}
@@ -554,6 +557,11 @@ func (downloader *Downloader) Download(data *extractors.Data) error {
 		printInfo(data, sortedStreams)
 		return nil
 	}
+
+	// 传递下载信息到外部
+	process.Type = string(data.Type)
+	process.Site = data.Site
+	process.Title = data.Title
 
 	title := downloader.option.OutputName
 	if title == "" {
@@ -569,6 +577,9 @@ func (downloader *Downloader) Download(data *extractors.Data) error {
 	if !ok {
 		return errors.Errorf("no stream named %s", streamName)
 	}
+
+	process.Quality = stream.Quality
+	process.Size = fmt.Sprintf("%.2f MiB (%d Bytes)", float64(stream.Size)/(1024*1024), stream.Size)
 
 	if !downloader.option.Silent {
 		printStreamInfo(data, stream)
@@ -605,9 +616,12 @@ func (downloader *Downloader) Download(data *extractors.Data) error {
 		return nil
 	}
 
-	downloader.bar = progressBar(stream.Size)
+	downloader.Bar = progressBar(stream.Size)
+	// 传递下载进度到外边
+	downloader.Bar.SetWriter(process.BarWriter)
+	downloader.Bar.Set(pb.ReturnSymbol, "$")
 	if !downloader.option.Silent {
-		downloader.bar.Start()
+		downloader.Bar.Start()
 	}
 	if len(stream.Parts) == 1 {
 		// only one fragment
@@ -621,7 +635,7 @@ func (downloader *Downloader) Download(data *extractors.Data) error {
 		if err != nil {
 			return err
 		}
-		downloader.bar.Finish()
+		downloader.Bar.Finish()
 		return nil
 	}
 
@@ -657,7 +671,7 @@ func (downloader *Downloader) Download(data *extractors.Data) error {
 	if len(errs) > 0 {
 		return errs[0]
 	}
-	downloader.bar.Finish()
+	downloader.Bar.Finish()
 
 	if data.Type != extractors.DataTypeVideo {
 		return nil

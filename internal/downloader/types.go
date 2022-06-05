@@ -1,5 +1,9 @@
 package downloader
 
+import (
+	"strings"
+)
+
 // Aria2RPCData defines the data structure of json RPC 2.0 info for Aria2
 type Aria2RPCData struct {
 	// More info about RPC interface please refer to
@@ -27,4 +31,22 @@ type FilePartMeta struct {
 	Start int64
 	End   int64
 	Cur   int64
+}
+
+type Process struct {
+	BarWriter *strings.Builder
+	Title     string
+	Site      string
+	Type      string
+	Quality   string
+	Size      string
+}
+
+// LastProcessLine 获取进度的最后一行 (用于刷新显示进度条)
+func (p Process) LastProcessLine() string {
+	sp := strings.Split(p.BarWriter.String(), "$")
+	if len(sp) == 0 {
+		return ""
+	}
+	return sp[len(sp)-1]
 }

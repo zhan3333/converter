@@ -6,7 +6,7 @@ import (
 	"converter/internal/downloader"
 )
 
-func Download(videoURL string) error {
+func Download(videoURL string, process *downloader.Process) error {
 	data, err := extractors.Extract(videoURL, extractors.Options{})
 	if err != nil {
 		// if this error occurs, it means that an error occurred before actually starting to extract data
@@ -23,7 +23,7 @@ func Download(videoURL string) error {
 			errors = append(errors, item.Err)
 			continue
 		}
-		if err = defaultDownloader.Download(item); err != nil {
+		if err = defaultDownloader.Download(item, process); err != nil {
 			errors = append(errors, err)
 		}
 	}

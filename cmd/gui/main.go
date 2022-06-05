@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"converter"
+	"converter/internal/downloader"
 )
 
 func init() {
@@ -41,7 +42,7 @@ func main() {
 	)
 
 	w.SetContent(tabs)
-	w.Resize(fyne.NewSize(640, 460))
+	w.Resize(fyne.NewSize(1080, 460))
 	// 异步检查一下环境
 	go func() {
 		time.Sleep(500 * time.Millisecond)
@@ -65,8 +66,19 @@ func downloadVideoBox(w fyne.Window) (box *fyne.Container) {
 		return nil
 	}
 	statusText := NewStatusText("填写视频链接后按开始按钮下载")
-	processOutput := widget.NewLabel("")
+	var (
+		title       = binding.NewString()
+		site        = binding.NewString()
+		quality     = binding.NewString()
+		size        = binding.NewString()
+		type1       = binding.NewString()
+		processLine = binding.NewString()
+	)
+
 	processWrite := &strings.Builder{}
+	process := &downloader.Process{
+		BarWriter: processWrite,
+	}
 	downloadDir, err := converter.GetCurrentDir()
 	if err != nil {
 		dialog.ShowError(err, w)
@@ -87,27 +99,38 @@ func downloadVideoBox(w fyne.Window) (box *fyne.Container) {
 		button.Disable()
 		defer button.Enable()
 		// 循环渲染结果到屏幕
-		end := false
-		defer func() { end = true }()
+		inProcess := true
+		defer func() {
+			time.Sleep(200 * time.Millisecond)
+			inProcess = false
+		}()
 		go func() {
-			for !end {
-				processOutput.Text = processWrite.String()
-				processOutput.Refresh()
+			for inProcess {
+				_ = title.Set("标题: " + process.Title)
+				_ = site.Set("站点: " + process.Site)
+				_ = type1.Set("类型: " + process.Type)
+				_ = quality.Set("质量: " + process.Quality)
+				_ = size.Set("体积: " + process.Size)
+				_ = processLine.Set(process.LastProcessLine())
 				time.Sleep(100 * time.Millisecond)
 			}
 		}()
-		if err := converter.DownloadVideo(videoURL, processWrite); err != nil {
+		if err := converter.DownloadVideo(videoURL, process); err != nil {
 			statusText.Set("下载失败: " + err.Error())
 			return
 		}
 		statusText.Set("下载完成")
 	}
 
-	box.Add(statusText.Widget)
-	box.Add(processOutput)
-
 	box.Add(input)
 	box.Add(container.NewGridWithColumns(2, button, openDirButton))
+	box.Add(statusText.Widget)
+	box.Add(widget.NewLabelWithData(title))
+	box.Add(widget.NewLabelWithData(type1))
+	box.Add(widget.NewLabelWithData(site))
+	box.Add(widget.NewLabelWithData(size))
+	box.Add(widget.NewLabelWithData(quality))
+	box.Add(widget.NewLabelWithData(processLine))
 
 	return
 }
@@ -244,12 +267,12 @@ func NewStatusText(str string) *StatusText {
 
 func (t *StatusText) Set(s string) {
 	t.InProcess = false
-	_ = t.Str.Set(s)
+	_ = t.Str.Set("状态: " + s)
 }
 
 func (t *StatusText) SetInProcess(s string) {
 	t.InProcess = true
-	_ = t.Str.Set(s)
+	_ = t.Str.Set("状态: " + s)
 	go func(t2 *StatusText, s2 string) {
 		r := []string{
 			"",
