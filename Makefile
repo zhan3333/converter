@@ -8,7 +8,7 @@ release:
 	zip -p -r converter.zip build/
 
 run:
-	go run cmd/main.go
+	go run cmd/gui/main.go
 
 clear:
 	rm -f build/converter.exe build/converter build/logs/*.txt build/*.mp4
