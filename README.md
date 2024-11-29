@@ -1,3 +1,5 @@
+# Archive: 请使用 https://github.com/zhan3333/writer-helper 来代替本仓库
+
 # 视频下载和转换工具
 
 程序可编译在 Windows、Mac 平台运行。
